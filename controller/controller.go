@@ -185,7 +185,11 @@ func (c *Controller) RunOnce(ctx context.Context) error {
 func (c *Controller) ScheduleRunOnce(now time.Time) {
 	c.nextRunAtMux.Lock()
 	defer c.nextRunAtMux.Unlock()
-	c.nextRunAt = now.Add(c.MinEventSyncInterval)
+	// Shedule only if a reconciliation is not already planned
+	// to happen in the following c.MinEventSyncInterval
+	if !c.nextRunAt.Before(now.Add(c.MinEventSyncInterval)) {
+		c.nextRunAt = now.Add(c.MinEventSyncInterval)
+	}
 }
 
 func (c *Controller) ShouldRunOnce(now time.Time) bool {
